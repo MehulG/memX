@@ -43,3 +43,31 @@ class AgentContext:
 
         thread = threading.Thread(target=_listen, daemon=True)
         thread.start()
+
+    def set_schema(self, key, schema):
+        res = httpx.post(
+            f"{self.base_url}/schema",
+            headers={"x-api-key": self.api_key},
+            json={"key": key, "schema": schema}
+        )
+        res.raise_for_status()
+        return res.json()
+
+    def get_schema(self, key):
+        res = httpx.get(
+            f"{self.base_url}/schema",
+            headers={"x-api-key": self.api_key},
+            params={"key": key}
+        )
+        res.raise_for_status()
+        return res.json()
+
+    def delete_schema(self, key):
+        res = httpx.delete(
+            f"{self.base_url}/schema",
+            headers={"x-api-key": self.api_key},
+            params={"key": key}
+        )
+        res.raise_for_status()
+        return res.json()
+

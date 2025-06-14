@@ -1,6 +1,7 @@
+# API key → allowed key prefixes
 acl = {
-    "agent_key_1": ["agent:*"],
-    "planner_key": ["agent:planner:*"],
+    "agent_key_1": ["agent:goal", "agent:state"],
+    "planner_only": ["agent:goal"],
 }
 
 def is_authorized(api_key, key):
