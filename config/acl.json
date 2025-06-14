@@ -1,0 +1,5 @@
+{
+  "agent_key_1": ["agent:*"],
+  "planner_key": ["agent:goal"],
+  "read_only": ["agent:goal", "agent:state"]
+}

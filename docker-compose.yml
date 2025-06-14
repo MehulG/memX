@@ -1,0 +1,11 @@
+version: '3.9'
+services:
+  memx:
+    build:
+      context: .
+    volumes:
+      - ./config:/app/config
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1

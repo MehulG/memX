@@ -1,8 +1,7 @@
-# API key → allowed key prefixes
-acl = {
-    "agent_key_1": ["agent:goal", "agent:state"],
-    "planner_only": ["agent:goal"],
-}
+import json
+
+with open("config/acl.json") as f:
+    acl = json.load(f)
 
 def is_authorized(api_key, key):
     scopes = acl.get(api_key, [])
