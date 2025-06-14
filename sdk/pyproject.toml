@@ -1,0 +1,13 @@
+[project]
+name = "context-sdk"
+version = "0.1.0"
+description = "Python SDK for memX Context Store"
+authors = [{ name = "You" }]
+dependencies = [
+    "httpx",
+    "websockets"
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
