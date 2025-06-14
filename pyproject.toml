@@ -1,0 +1,18 @@
+[project]
+name = "memx"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Mehul Gaidhani",email = "mehulgaidhani@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[all] (>=0.115.12,<0.116.0)",
+    "jsonschema (>=4.24.0,<5.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
