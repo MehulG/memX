@@ -107,8 +107,3 @@ examples/   # Agent examples: planner, executor
 
 MIT
 
----
-
-## ✨ About
-
-Built for the emerging multi-agent ecosystem. Join the discussion on LangGraph, Autogen, or LLM infra Discords.
