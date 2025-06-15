@@ -98,12 +98,21 @@ ctx.set_schema("agent:state", schema_dict)
 core/       # FastAPI + WebSocket backend
 sdk/        # Python SDK (installable)
 config/     # Contains acl.json, (optionally schemas.json)
-examples/   # Agent examples: planner, executor
+examples/   # Agent examples
 ```
+## 🎬 Demo: Multi-Agent LLMs Using memX Shared Memory
 
----
+3 LLM-style agents collaborate on a research task — without messaging each other or orchestration logic.
 
-## 📄 License
+They use `memX` to share evolving memory in real time:
 
-MIT
+| Agent            | What it does                                     |
+|------------------|--------------------------------------------------|
+| `QueryAgent`     | Seeds the research question + background context |
+| `ExplorerAgent`  | Adds search results + working thoughts           |
+| `SynthesizerAgent` | Summarizes shared context into a final insight |
+| `MonitorAgent`   | Logs how memory evolves in real time             |
 
+> 💡 All communication happens *only* through shared keys in memX.
+
+![memX agent demo](./assets/example.gif)
