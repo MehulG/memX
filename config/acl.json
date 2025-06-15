@@ -1,5 +1,10 @@
 {
-  "agent_key_1": ["agent:*"],
-  "planner_key": ["agent:goal"],
-  "read_only": ["agent:goal", "agent:state"]
+  "agent_key_1": [
+    "memx:query",
+    "memx:context",
+    "memx:search_results:0",
+    "memx:thoughts:0",
+    "memx:thoughts:1",
+    "memx:summary"
+  ]
 }
