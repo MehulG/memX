@@ -1,10 +1,30 @@
 # 🧠 memX Context Store
 
-A shared memory layer for multi-agent systems — with real-time sync, schema enforcement, and access control. Ideal for LLM agents, LangGraph, Autogen, robots, IoT, and more.
+A real-time shared memory layer for multi-agent LLM systems.
+
+Built for coordination, not just storage — with pub/sub, schema enforcement, and API-key ACLs.
+
 
 Think: **Redis + schema + pub/sub + ACL — purpose-built for agents.**
 
 ---
+
+## 🎬 Example: Multi-Agent LLMs Using memX Shared Memory
+
+💡 **Three autonomous LLM agents collaborate on a research task** using memX — no chat, no controller, just shared memory.
+
+🧠 Each agent reads/writes to shared keys:
+
+| Agent            | What it does                                     |
+|------------------|--------------------------------------------------|
+| `QueryAgent`     | Seeds the research question + background context |
+| `ExplorerAgent`  | Adds search results + working thoughts           |
+| `SynthesizerAgent` | Summarizes shared context into a final insight |
+| `MonitorAgent`   | Logs how memory evolves in real time             |
+
+> 💡 All communication happens *only* through shared keys in memX.
+
+![memX agent demo](./assets/example.gif)
 
 ## 🚀 Features
 
@@ -100,19 +120,3 @@ sdk/        # Python SDK (installable)
 config/     # Contains acl.json, (optionally schemas.json)
 examples/   # Agent examples
 ```
-## 🎬 Demo: Multi-Agent LLMs Using memX Shared Memory
-
-3 LLM-style agents collaborate on a research task — without messaging each other or orchestration logic.
-
-They use `memX` to share evolving memory in real time:
-
-| Agent            | What it does                                     |
-|------------------|--------------------------------------------------|
-| `QueryAgent`     | Seeds the research question + background context |
-| `ExplorerAgent`  | Adds search results + working thoughts           |
-| `SynthesizerAgent` | Summarizes shared context into a final insight |
-| `MonitorAgent`   | Logs how memory evolves in real time             |
-
-> 💡 All communication happens *only* through shared keys in memX.
-
-![memX agent demo](./assets/example.gif)

@@ -1,45 +1,77 @@
 from context_sdk import AgentContext
 import time
+import requests
+import hashlib
 
 ctx = AgentContext(api_key="agent_key_1")
-
-search_seen = False
-thoughts_seen = []
+last_summary_hash = None
+final_summary = ''
 count = 0
-def maybe_summarize(data, num):
+def hash_text(text):
+    return hashlib.sha256(text.encode()).hexdigest()
+
+def call_mistral(prompt: str) -> str:
+    try:
+        res = requests.post("http://localhost:11434/api/generate", json={
+            "model": "mistral",
+            "prompt": prompt,
+            "stream": False
+        })
+        res.raise_for_status()
+        return res.json()["response"].strip()
+    except Exception as e:
+        print("❌ Mistral error:", e)
+        return "LLM error."
+
+def summarize():
+    global last_summary_hash
+    global final_summary
     global count
-    if search_seen and len(thoughts_seen) >= 1:
-        if count == 0:
-            summary = (
-                "Open-source LLMs are being adopted by enterprises. Many require internal fine-tuning capacity."
-            )
-            ctx.set("memx:summary", summary)
-            print("📝 SynthesizerAgent wrote a summary.")
+    try:
+        query = ctx.get("memx:query")["value"]
+        results = ctx.get("memx:search_results:0")["value"]
+        thoughts = [ctx.get("memx:thoughts:0")["value"]]
+        try:
+            thoughts.append(ctx.get("memx:thoughts:1")["value"])
+        except:
+            pass  # optional follow-up thought
+    except:
+        print("⏳ Waiting for all inputs...")
+        return
 
-        elif count >= 1:
-            summary = (
-                "Open-source LLMs are being adopted by enterprises. Many require internal fine-tuning capacity. Hosted vs self-hosted deployment trade-offs are also emerging."
-            )
-            print("📝 SynthesizerAgent wrote the final summary.")
-            print(summary)
+    prompt = f"""You are a summarizer agent.
 
-def on_search(data):
-    global search_seen
-    search_seen = True
-    maybe_summarize(data, 1)
+Based on the following:
+- Query: {query}
+- Search Result: {results}
+- Thoughts:
+{"".join(f"- {t}\n" for t in thoughts)}
 
-def on_thought(data):
-    global thoughts_seen
-    val = data["value"]
-    if val not in thoughts_seen:
-        thoughts_seen.append(val)
-    maybe_summarize(val, 2)
-    global count 
-    count += 1
+Write a final 2-sentence summary suitable for a leadership audience.
+"""
 
-ctx.subscribe("memx:search_results:0", on_search)
-ctx.subscribe("memx:thoughts:0", on_thought)
-ctx.subscribe("memx:thoughts:1", on_thought)
+    print("🧠 SynthesizerAgent: summarizing via Mistral...")
+    summary = call_mistral(prompt)
+    summary_hash = hash_text(summary)
+
+    if summary_hash != last_summary_hash:
+        ctx.set("memx:summary", summary)
+        last_summary_hash = summary_hash
+        final_summary = summary
+        count += 1
+        if count > 1:
+            print("✅ Final summary written:\n", final_summary, "\n")
+    else:
+        print("⚠️ Summary unchanged — skipping write.")
+
+def on_data(_):
+    summarize()
+
+# ctx.subscribe("memx:search_results:0", on_data)
+ctx.subscribe("memx:thoughts:0", on_data)
+ctx.subscribe("memx:thoughts:1", on_data)
+
+
 
 while True:
     time.sleep(1)
