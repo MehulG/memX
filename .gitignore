@@ -1,3 +1,5 @@
 /__pycache__
-/sdk/content_sdk.egg-info
-/sdk/__pycache__
+/sdk/context_sdk.egg-info
+/sdk/context_sdk/__pycache__
+/frontend/.streamlit
+.env

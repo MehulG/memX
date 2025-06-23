@@ -6,6 +6,7 @@ from pubsub import subscribe, publish
 from schema import register_schema, validate_schema, get_schema, delete_schema
 import asyncio
 import jsonschema
+import validate_api_key
 
 app = FastAPI()
 
@@ -15,13 +16,14 @@ def get(key: str):
 
 @app.post("/set")
 async def set(request: Request):
+    await validate_api_key(request)
     body = await request.json()
     key = body["key"]
     value = body["value"]
-    api_key = request.headers.get("x-api-key")
+    # api_key = request.headers.get("x-api-key")
 
-    if not api_key or not is_authorized(api_key, key):
-        raise HTTPException(403, detail="Forbidden: key not allowed")
+    # if not api_key or not is_authorized(api_key, key):
+    #     raise HTTPException(403, detail="Forbidden: key not allowed")
 
     try:
         validate_schema(key, value)
