@@ -56,9 +56,12 @@ supabase = create_client(
 )
 
 user_id = st.session_state.session.user.id
+user_prefix = user_id[:8]  # used to namespace scope keys
 
 # --- API Key Viewer ---
 st.header("🔑 Your API Keys")
+st.caption(f"🔒 Namespace: `{user_prefix}` (automatically applied to all scopes)")
+
 keys = supabase.table("api_keys").select("*").execute()
 if keys.data:
     table_data = [
@@ -77,6 +80,7 @@ else:
 
 # --- API Key Creator ---
 st.header("➕ Create New API Key")
+
 with st.form("create_key"):
     key_name = st.text_input("Name")
     read_scope = st.text_input("Read scope (comma-separated)", "agent:*")
@@ -86,8 +90,8 @@ with st.form("create_key"):
     if submit_key:
         api_key = secrets.token_hex(16)
         scopes = {
-            "read": [s.strip() for s in read_scope.split(",")],
-            "write": [s.strip() for s in write_scope.split(",")]
+            "read": [f"{user_prefix}:{s.strip()}" for s in read_scope.split(",")],
+            "write": [f"{user_prefix}:{s.strip()}" for s in write_scope.split(",")]
         }
         supabase.rpc("create_api_key", {
             "key_name": key_name,
