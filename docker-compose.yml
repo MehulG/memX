@@ -1,11 +1,14 @@
-version: '3.9'
 services:
-  memx:
+  memx-backend:
     build:
       context: .
-    volumes:
-      - ./config:/app/config
+      dockerfile: Dockerfile
+    container_name: memx-backend
     ports:
       - "8000:8000"
     environment:
-      - PYTHONUNBUFFERED=1
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+    restart: unless-stopped
+    dns:
+      - 8.8.8.8

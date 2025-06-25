@@ -2,6 +2,8 @@ import fnmatch
 from fastapi import Request, HTTPException, WebSocket
 from supabase import create_client
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
 
@@ -14,11 +16,11 @@ async def validate_api_key(request: Request, key: str, action: str = "write"):
     if not api_key:
         raise HTTPException(status_code=401, detail="Missing API key")
 
-    res = supabase.from_("api_keys").select("*").eq("key", api_key).eq("active", True).single().execute()
-    if res.get("error") or not res.get("data"):
-        raise HTTPException(status_code=403, detail="Invalid API key")
+    res = supabase.from_("api_keys").select("*").eq("key", api_key).eq("active", True).execute()
+    if not res.data:
+        raise HTTPException(status_code=403, detail="Invalid or inactive API key")
 
-    record = res["data"]
+    record = res.data[0]
     scopes = record.get("scopes", {})
     user_id = record.get("user_id", "")
 
