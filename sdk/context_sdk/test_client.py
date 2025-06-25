@@ -1,4 +1,4 @@
-from context_sdk import AgentContext
+from context_sdk import memxContext
 import time
 
 schema = {
@@ -6,7 +6,7 @@ schema = {
     "properties": { "x": { "type": "number" }, "y": { "type": "number" } },
     "required": ["x", "y"]
 }
-ctx = AgentContext(api_key="agent_key_1")
+ctx = memxContext(api_key="agent_key_1")
 
 
 ctx.set_schema("agent:state", schema)
