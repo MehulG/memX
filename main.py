@@ -1,27 +1,25 @@
 from fastapi import FastAPI, WebSocket, Request, HTTPException
 from store import get_value, set_value
-from schema import validate_schema
-from auth import is_authorized
 from pubsub import subscribe, publish
 from schema import register_schema, validate_schema, get_schema, delete_schema
 import asyncio
 import jsonschema
+import validate_api
 
 app = FastAPI()
 
 @app.get("/get")
-def get(key: str):
+async def get(key: str, request: Request):
+    await validate_api.validate_api_key(request, key, action="read")
     return get_value(key)
 
 @app.post("/set")
 async def set(request: Request):
     body = await request.json()
-    key = body["key"]
     value = body["value"]
-    api_key = request.headers.get("x-api-key")
+    key = body["key"]
 
-    if not api_key or not is_authorized(api_key, key):
-        raise HTTPException(403, detail="Forbidden: key not allowed")
+    await validate_api.validate_api_key(request, key, action="write")
 
     try:
         validate_schema(key, value)
@@ -37,25 +35,24 @@ async def set(request: Request):
 @app.websocket("/subscribe/{key}")
 async def websocket_endpoint(websocket: WebSocket, key: str):
     await websocket.accept()
-    print("connection open")
+    if not await validate_api.validate_websocket(websocket, key):
+        return
+    print(f"[WebSocket] Subscribed to {key}")
     subscribe(key, websocket)
-
     try:
         while True:
-            # Keep it alive by pinging, even if we don't expect client input
             await asyncio.sleep(1)
-    except Exception as e:
-        print(f"[Server] WebSocket error: {e}")
+    except:
+        print(f"[WebSocket] closed: {key}")
 
 @app.post("/schema")
 async def set_schema(request: Request):
     body = await request.json()
     key = body["key"]
     schema = body["schema"]
-    api_key = request.headers.get("x-api-key")
 
-    if not api_key or not is_authorized(api_key, key):
-        raise HTTPException(403)
+    await validate_api.validate_api_key(request, key, action="write")
+
     try:
         register_schema(key, schema)
     except jsonschema.exceptions.SchemaError as e:
@@ -63,20 +60,16 @@ async def set_schema(request: Request):
     return {"ok": True}
 
 @app.get("/schema")
-def fetch_schema(key: str, request: Request):
-    api_key = request.headers.get("x-api-key")
-    if not api_key or not is_authorized(api_key, key):
-        raise HTTPException(403)
+async def fetch_schema(key: str, request: Request):
+    await validate_api.validate_api_key(request, key, action="read")
     schema = get_schema(key)
     if not schema:
         raise HTTPException(404, detail="Schema not found")
     return {"key": key, "schema": schema}
 
 @app.delete("/schema")
-def remove_schema(key: str, request: Request):
-    api_key = request.headers.get("x-api-key")
-    if not api_key or not is_authorized(api_key, key):
-        raise HTTPException(403)
+async def remove_schema(key: str, request: Request):
+    await validate_api.validate_api_key(request, key, action="write")
     deleted = delete_schema(key)
     if not deleted:
         raise HTTPException(404, detail="Schema not found")
