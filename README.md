@@ -49,11 +49,19 @@ pip install memx-sdk
 
 ```python
 from context_sdk import memxContext
+ctx = memxContext(api_key="api_key")
+ctx.set_schema("agent:goal", {
+    "type": "object",
+    "properties": {
+      "x": { "type": "number" },
+      "y": { "type": "number" }
+    },
+    "required": ["x", "y"]
+  })
+get1 = ctx.get("agent:goal")
+print(get1)
+ctx.set("agent:goal", {"x":1, "y":7})
 
-ctx = memxContext(api_key="agent_key_1")
-ctx.set("agent:goal", "navigate kitchen")
-ctx.subscribe("agent:goal", lambda data: print("Goal:", data["value"]))
-```
 
 ---
 
