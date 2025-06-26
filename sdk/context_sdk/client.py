@@ -4,8 +4,8 @@ import websockets
 import threading
 import json
 
-class AgentContext:
-    def __init__(self, api_key, base_url="http://localhost:8000"):
+class memxContext:
+    def __init__(self, api_key, base_url="https://memx-production.up.railway.app"):
         self.api_key = api_key
         self.base_url = base_url
 
@@ -21,6 +21,7 @@ class AgentContext:
     def get(self, key):
         res = httpx.get(
             f"{self.base_url}/get",
+            headers={"x-api-key": self.api_key},
             params={"key": key}
         )
         res.raise_for_status()
@@ -30,7 +31,7 @@ class AgentContext:
         def _listen():
             uri = f"{self.base_url.replace('http', 'ws')}/subscribe/{key}"
             async def _inner():
-                async with websockets.connect(uri) as ws:
+                async with websockets.connect(uri, additional_headers={"x-api-key": self.api_key}) as ws:
                     while True:
                         try:
                             msg = await ws.recv()

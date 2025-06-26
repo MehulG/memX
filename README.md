@@ -32,7 +32,7 @@ Think: **Redis + schema + pub/sub + ACL — purpose-built for agents.**
 * 📬 Pub/sub updates on key change
 * 📐 JSON Schema validation (per key)
 * 🔐 API key-based access control
-* 🐍 Python SDK (`context-sdk`) for easy integration
+* 🐍 Python SDK (`memx-sdk`) for easy integration
 * 🐳 Docker-compatible self-hosting
 
 ---
@@ -42,18 +42,26 @@ Think: **Redis + schema + pub/sub + ACL — purpose-built for agents.**
 ### ▶️ Install SDK
 
 ```bash
-pip install context-sdk
+pip install memx-sdk
 ```
 
 ### 💡 Usage Example
 
 ```python
-from context_sdk import AgentContext
+from context_sdk import memxContext
+ctx = memxContext(api_key="api_key")
+ctx.set_schema("agent:goal", {
+    "type": "object",
+    "properties": {
+      "x": { "type": "number" },
+      "y": { "type": "number" }
+    },
+    "required": ["x", "y"]
+  })
+get1 = ctx.get("agent:goal")
+print(get1)
+ctx.set("agent:goal", {"x":1, "y":7})
 
-ctx = AgentContext(api_key="agent_key_1")
-ctx.set("agent:goal", "navigate kitchen")
-ctx.subscribe("agent:goal", lambda data: print("Goal:", data["value"]))
-```
 
 ---
 

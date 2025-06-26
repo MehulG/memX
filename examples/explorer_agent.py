@@ -1,8 +1,8 @@
-from context_sdk import AgentContext
+from context_sdk import memxContext
 import time
 import requests
 
-ctx = AgentContext(api_key="agent_key_1")
+ctx = memxContext(api_key="agent_key_1")
 
 query_handled = False
 summary_handled = False

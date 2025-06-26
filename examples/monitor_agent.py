@@ -1,7 +1,7 @@
-from context_sdk import AgentContext
+from context_sdk import memxContext
 import time
 
-ctx = AgentContext(api_key="agent_key_1")
+ctx = memxContext(api_key="agent_key_1")
 
 def log(data):
     print(f"📡 Monitor saw: {data['key']} → {data['value']}")

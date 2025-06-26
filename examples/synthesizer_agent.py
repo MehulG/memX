@@ -1,9 +1,9 @@
-from context_sdk import AgentContext
+from context_sdk import memxContext
 import time
 import requests
 import hashlib
 
-ctx = AgentContext(api_key="agent_key_1")
+ctx = memxContext(api_key="agent_key_1")
 last_summary_hash = None
 final_summary = ''
 count = 0
