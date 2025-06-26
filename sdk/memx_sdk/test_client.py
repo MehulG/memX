@@ -1,4 +1,4 @@
-from context_sdk import memxContext
+from memx_sdk import memxContext
 import time
 
 schema = {

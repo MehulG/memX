@@ -1,11 +1,11 @@
-# 🧠 memX Context Store
+# 🧠 memX
 
-A real-time shared memory layer for multi-agent LLM systems.
+memX is an open source real-time shared memory layer for multi-agent LLM systems.
 
-Built for coordination, not just storage — with pub/sub, schema enforcement, and API-key ACLs.
-
-
-Think: **Redis + schema + pub/sub + ACL — purpose-built for agents.**
+Built for coordination-first workflows with:
+- JSON Schema enforcement
+- API-key-based ACLs
+- Pub/Sub updates
 
 ---
 
@@ -62,7 +62,7 @@ get1 = ctx.get("agent:goal")
 print(get1)
 ctx.set("agent:goal", {"x":1, "y":7})
 
-
+```
 ---
 
 ## ⚙️ Run the Server
