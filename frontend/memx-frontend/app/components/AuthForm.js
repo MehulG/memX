@@ -1,4 +1,3 @@
-// components/AuthForm.js
 "use client";
 import { useState } from "react";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
@@ -11,11 +10,13 @@ export default function AuthForm({ onAuth }) {
   const [mode, setMode] = useState("login");
   const [error, setError] = useState(null);
   const [info, setInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError(null);
     setInfo(null);
+    setLoading(true);
     try {
       if (mode === "login") {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -28,6 +29,8 @@ export default function AuthForm({ onAuth }) {
       }
     } catch (err) {
       setError(err.message);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -44,6 +47,7 @@ export default function AuthForm({ onAuth }) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
             />
             <input
               className="w-full p-2 border"
@@ -51,9 +55,14 @@ export default function AuthForm({ onAuth }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
-            <button className="bg-blue-500 text-white w-full py-2 cursor-pointer" type="submit">
-              Submit
+            <button
+              className="bg-blue-500 text-white w-full py-2 cursor-pointer disabled:opacity-50"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? "Processing..." : mode === "login" ? "Login" : "Signup"}
             </button>
             {error && <p className="text-red-500 text-sm">{error}</p>}
             {info && <p className="text-green-500 text-sm">{info}</p>}
@@ -63,6 +72,7 @@ export default function AuthForm({ onAuth }) {
             <button
               className="text-blue-600 cursor-pointer"
               onClick={() => setMode(mode === "login" ? "signup" : "login")}
+              disabled={loading}
             >
               {mode === "login" ? "Signup" : "Login"}
             </button>

@@ -1,4 +1,3 @@
-// components/Header.js
 "use client";
 import LogoutButton from "./LogoutButton";
 

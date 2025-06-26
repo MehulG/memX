@@ -1,4 +1,3 @@
-// components/LogoutButton.js
 "use client";
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 

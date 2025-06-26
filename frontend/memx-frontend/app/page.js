@@ -1,26 +1,27 @@
-// app/page.js
 "use client";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import AuthForm from "./components/AuthForm";
 import KeyViewer from "./components/KeyViewer";
 import CreateKeyForm from "./components/CreateKeyForm";
-import LogoutButton from "./components/LogoutButton";
 import Header from "./components/Header";
 
 export default function Home() {
   const [session, setSession] = useState(null);
+  const [reload, setReload] = useState(0);
 
-  if (!session) return (
-    <>
-    <AuthForm onAuth={setSession} />
-    </>
+  const triggerReload = useCallback(() => {
+    setReload((prev) => prev + 1);
+  }, []);
+
+  if (!session) {
+    return <AuthForm onAuth={setSession} />;
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header showLogout={true} onLogout={() => setSession(null)} />
+      <CreateKeyForm session={session} onCreated={triggerReload} />
+      <KeyViewer key={reload} session={session} />
+    </div>
   );
-return (
-
-  <>
-    <Header showLogout={true} onLogout={() => setSession(null)} />
-    <CreateKeyForm session={session} />
-    <KeyViewer session={session} />
-  </>
-);
 }

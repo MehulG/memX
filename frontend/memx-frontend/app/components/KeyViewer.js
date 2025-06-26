@@ -5,10 +5,14 @@ import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 export default function KeyViewer({ session }) {
   const supabase = createClientComponentClient();
   const [keys, setKeys] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(null);
 
   const fetchKeys = async () => {
+    setLoading(true);
     const { data } = await supabase.from("api_keys").select("*");
     setKeys(data || []);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -16,7 +20,9 @@ export default function KeyViewer({ session }) {
   }, []);
 
   const deleteKey = async (key) => {
+    setDeleting(key);
     await supabase.from("api_keys").delete().eq("key", key);
+    setDeleting(null);
     fetchKeys();
   };
 
@@ -26,7 +32,9 @@ export default function KeyViewer({ session }) {
     <div className="p-4">
       <h2 className="text-xl font-semibold mb-2">🔑 Your API Keys</h2>
       <p className="text-sm text-gray-500 mb-4">Namespace: <code>{userPrefix}</code></p>
-      {keys.length === 0 ? (
+      {loading ? (
+        <p>Loading keys...</p>
+      ) : keys.length === 0 ? (
         <p>No keys found.</p>
       ) : (
         <table className="w-full text-left border">
@@ -52,8 +60,9 @@ export default function KeyViewer({ session }) {
                   <button
                     className="text-red-500 underline cursor-pointer"
                     onClick={() => deleteKey(k.key)}
+                    disabled={deleting === k.key}
                   >
-                    Delete
+                    {deleting === k.key ? "Deleting..." : "Delete"}
                   </button>
                 </td>
               </tr>
