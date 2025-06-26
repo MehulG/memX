@@ -1,73 +1,83 @@
-# 🧠 memX
+# 🧠 memX: Shared Memory for Multi-Agent LLM Systems
 
-memX is an open source real-time shared memory layer for multi-agent LLM systems.
+**memX** is an open-source real-time shared memory layer designed for agent-based systems powered by LLMs. It enables **coordination-first workflows** via:
 
-Built for coordination-first workflows with:
-- JSON Schema enforcement
-- API-key-based ACLs
-- Pub/Sub updates
+* ⚡ Real-time CRDT-style state sync
+* 📐 JSON Schema enforcement for data sanity
+* 🔐 API-key-based access control
+* 📣 Pub/Sub updates for reactive agents
 
 ---
 
-## 🎬 Example: Multi-Agent LLMs Using memX Shared Memory
+## 🔍 What Problem Does memX Solve?
 
-💡 **Three autonomous LLM agents collaborate on a research task** using memX — no chat, no controller, just shared memory.
+Modern multi-agent setups—whether using LangGraph, Autogen, or custom orchestration—lack a reliable way to **share evolving context** (state, goals, thoughts) between agents. memX provides a simple and secure memory layer that agents can read/write from in real-time — no message-passing or controller required.
 
-🧠 Each agent reads/writes to shared keys:
+---
 
-| Agent            | What it does                                     |
-|------------------|--------------------------------------------------|
-| `QueryAgent`     | Seeds the research question + background context |
-| `ExplorerAgent`  | Adds search results + working thoughts           |
-| `SynthesizerAgent` | Summarizes shared context into a final insight |
-| `MonitorAgent`   | Logs how memory evolves in real time             |
+## 🤖 Example: Collaborative LLM Agents Using memX
 
-> 💡 All communication happens *only* through shared keys in memX.
+Three autonomous agents solving a research task, fully decentralized:
+
+| Agent              | Behavior                                             |
+| ------------------ | ---------------------------------------------------- |
+| `QueryAgent`       | Seeds the research question + background context     |
+| `ExplorerAgent`    | Adds search results + working notes                  |
+| `SynthesizerAgent` | Summarizes the shared context into final insights    |
+| `MonitorAgent`     | Logs real-time evolution of memory for observability |
+
+> All communication flows through **shared keys** in memX — not through chat or a controller.
 
 ![memX agent demo](./assets/example.gif)
 
-## 🚀 Features
+---
 
-* 🔄 Real-time context sync (WebSocket)
-* 📬 Pub/sub updates on key change
-* 📐 JSON Schema validation (per key)
-* 🔐 API key-based access control
-* 🐍 Python SDK (`memx-sdk`) for easy integration
-* 🐳 Docker-compatible self-hosting
+## 🚀 Features at a Glance
+
+✅ Real-time memory sync (WebSocket)
+📬 Pub/Sub updates on change
+📐 Per-key JSON Schema validation
+🔐 Fine-grained ACLs via API keys
+🐍 Python SDK (`memx-sdk`) for easy integration
+🐳 Docker-compatible for local hosting or cloud deployment
 
 ---
 
-## 📦 Quickstart
+## ⚡ Quickstart
 
-### ▶️ Install SDK
+### 1. Install the SDK
 
 ```bash
 pip install memx-sdk
 ```
 
-### 💡 Usage Example
+### 2. Generate an API Key
+
+Visit: [mem-x.vercel.com](https://mem-x.vercel.com)
+Generate scoped API keys with just a few clicks.
+
+### 3. Use in Python
 
 ```python
 from context_sdk import memxContext
-ctx = memxContext(api_key="api_key")
-ctx.set_schema("agent:goal", {
-    "type": "object",
-    "properties": {
-      "x": { "type": "number" },
-      "y": { "type": "number" }
-    },
-    "required": ["x", "y"]
-  })
-get1 = ctx.get("agent:goal")
-print(get1)
-ctx.set("agent:goal", {"x":1, "y":7})
 
+ctx = memxContext(api_key="your_api_key")
+
+ctx.set_schema("agent:goal", {
+  "type": "object",
+  "properties": {"x": {"type": "number"}, "y": {"type": "number"}},
+  "required": ["x", "y"]
+})
+
+ctx.set("agent:goal", {"x": 1, "y": 7})
+print(ctx.get("agent:goal"))
 ```
+
 ---
 
-## ⚙️ Run the Server
+## 🧰 Running memX Locally
 
-### Option 1: Local Dev
+### Option 1: Dev Server
 
 ```bash
 uvicorn main:app --reload
@@ -79,13 +89,20 @@ uvicorn main:app --reload
 docker-compose up --build
 ```
 
-Visit: [http://localhost:8000/docs](http://localhost:8000/docs) for interactive Swagger UI.
+Swagger docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
-## 🔑 Adding API Keys
+## 🔑 API Key Management
 
-Edit `config/acl.json`:
+### Hosted
+
+1. Log in at [mem-x.vercel.com](https://mem-x.vercel.com)
+2. Generate API keys with scoped access control
+
+### Local Config
+
+Edit `config/acl.json` to define access scopes:
 
 ```json
 {
@@ -96,11 +113,13 @@ Edit `config/acl.json`:
 
 ---
 
-## 📐 Setting Schemas
+## 📐 Define Schemas (Optional but Recommended)
+
+Set schema for a key via API:
 
 ```bash
 POST /schema
-Headers: x-api-key
+Headers: x-api-key: your_key
 Body:
 {
   "key": "agent:state",
@@ -112,7 +131,7 @@ Body:
 }
 ```
 
-Or dynamically via SDK:
+Or via SDK:
 
 ```python
 ctx.set_schema("agent:state", schema_dict)
@@ -120,11 +139,29 @@ ctx.set_schema("agent:state", schema_dict)
 
 ---
 
-## 📁 Project Structure
+## 🗂 Project Structure
 
 ```
 core/       # FastAPI + WebSocket backend
-sdk/        # Python SDK (installable)
-config/     # Contains acl.json, (optionally schemas.json)
-examples/   # Agent examples
+sdk/        # Python SDK (pip installable)
+config/     # Access control & schemas
+examples/   # LLM agent integration demos
 ```
+
+---
+
+## 🌐 Use Cases
+
+* LangGraph / Autogen workflows with shared memory
+* Autonomous research or planning agents
+* IoT / robotics with real-time state coordination
+* Any multi-agent system needing structured memory
+
+---
+
+## 📣 Join Us
+
+memX is built for developers pushing the frontier of multi-agent systems.
+Explore the SDK, try out agent demos, and contribute!
+
+---
