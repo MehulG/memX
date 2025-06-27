@@ -1,4 +1,4 @@
-from context_sdk import memxContext
+from memx_sdk import memxContext
 import time
 
 ctx = memxContext(api_key="agent_key_1")

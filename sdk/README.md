@@ -27,9 +27,9 @@ pip install memx-sdk
 Log in to [dashboard](https://mem-x.vercel.app) and create api keys with relevent scopes.
 
 ```python
-from memx_sdk import Client
+from memx_sdk import memxContext
 
-client = Client(api_key="your-api-key")
+client = memxContext(api_key="your-api-key")
 
 # Define schema
 client.set_schema("agent:goal", {
