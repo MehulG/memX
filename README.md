@@ -59,7 +59,7 @@ Generate scoped API keys with just a few clicks.
 ### 3. Use in Python
 
 ```python
-from context_sdk import memxContext
+from memx_sdk import memxContext
 
 ctx = memxContext(api_key="your_api_key")
 

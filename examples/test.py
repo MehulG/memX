@@ -1,4 +1,4 @@
-from context_sdk import memxContext
+from memx_sdk import memxContext
 
 
 ctx = memxContext(api_key="74748d89f9cef9987ecc9dbe16b72daf")
