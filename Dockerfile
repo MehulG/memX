@@ -6,6 +6,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Default to the bundled Redis service in docker-compose; override as needed.
+ENV REDIS_URL=redis://redis:6379/0
+
 # Copy app code
 COPY . .
 

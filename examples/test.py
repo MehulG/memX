@@ -1,7 +1,8 @@
 from memx_sdk import memxContext
 
 
-ctx = memxContext(api_key="74748d89f9cef9987ecc9dbe16b72daf")
+# Use the local dev key defined in config/acl.json when running against the local server.
+ctx = memxContext(api_key="local_dev_key")
 
 ctx.set_schema("agent:goal", {
     "type": "object",
@@ -35,6 +36,5 @@ for i in range(0,10):
     get1 = ctx.get("agent:goal"+str(i))
 
     print(get1)
-
 
 
