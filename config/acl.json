@@ -1,4 +1,5 @@
 {
+  "local_dev_key": ["*"],
   "agent_key_1": [
     "memx:query",
     "memx:context",

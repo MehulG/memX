@@ -45,7 +45,19 @@ Three autonomous agents solving a research task, fully decentralized:
 
 ## ⚡ Quickstart
 
-### 1. Install the SDK
+### Local-first (default)
+
+1. Start the API locally:
+   ```bash
+   poetry run uvicorn main:app --reload --port 8000
+   ```
+2. Use the bundled dev key from `config/acl.json` (`local_dev_key`) or add your own patterns there.
+3. Run the sample:
+   ```bash
+   poetry run python examples/test.py
+   ```
+
+### Hosted
 
 ```bash
 pip install memx-sdk
@@ -62,6 +74,8 @@ Generate scoped API keys with just a few clicks.
 from memx_sdk import memxContext
 
 ctx = memxContext(api_key="your_api_key")
+# To target a non-default host, override base_url or set MEMX_BASE_URL in your env.
+# ctx = memxContext(api_key="your_api_key", base_url="https://your-host")
 
 ctx.set_schema("agent:goal", {
   "type": "object",

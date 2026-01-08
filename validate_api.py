@@ -1,14 +1,24 @@
 import fnmatch
+import json
 from fastapi import Request, HTTPException, WebSocket
 from supabase import create_client
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
-supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_SERVICE_KEY"))
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
+supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY) if SUPABASE_URL and SUPABASE_SERVICE_KEY else None
+
+# Fallback ACL for local/dev when Supabase is not configured or unreachable.
+try:
+    with open("config/acl.json") as f:
+        LOCAL_ACL = json.load(f)
+except Exception:
+    LOCAL_ACL = {}
 
 def _check_scope(scopes: dict, action: str, key: str, user_id: str):
-    namespaced_key = f"{user_id[:8]}:{key}"
+    namespaced_key = key if not user_id else f"{user_id[:8]}:{key}"
     return any(fnmatch.fnmatch(namespaced_key, pattern) for pattern in scopes.get(action, []))
 
 async def validate_api_key(request: Request, key: str, action: str = "write"):
@@ -16,11 +26,21 @@ async def validate_api_key(request: Request, key: str, action: str = "write"):
     if not api_key:
         raise HTTPException(status_code=401, detail="Missing API key")
 
-    res = supabase.from_("api_keys").select("*").eq("key", api_key).eq("active", True).execute()
-    if not res.data:
-        raise HTTPException(status_code=403, detail="Invalid or inactive API key")
+    record = None
+    if supabase:
+        try:
+            res = supabase.from_("api_keys").select("*").eq("key", api_key).eq("active", True).execute()
+            if res.data:
+                record = res.data[0]
+        except Exception as e:
+            print("[validate_api] Supabase lookup failed, falling back to local ACL:", e)
 
-    record = res.data[0]
+    if not record:
+        local_patterns = LOCAL_ACL.get(api_key, [])
+        if not local_patterns:
+            raise HTTPException(status_code=403, detail="Invalid or inactive API key")
+        record = {"user_id": "", "scopes": {"read": local_patterns, "write": local_patterns}}
+
     scopes = record.get("scopes", {})
     user_id = record.get("user_id", "")
 
@@ -35,12 +55,22 @@ async def validate_websocket(websocket: WebSocket, key: str) -> bool:
         await websocket.close(code=4401, reason="Missing API key")
         return False
 
-    res = supabase.table("api_keys").select("*").eq("key", api_key).eq("active", True).execute()
-    if not res.data:
-        await websocket.close(code=4403, reason="Invalid API key")
-        return False
+    record = None
+    if supabase:
+        try:
+            res = supabase.table("api_keys").select("*").eq("key", api_key).eq("active", True).execute()
+            if res.data:
+                record = res.data[0]
+        except Exception as e:
+            print("[validate_api] Supabase lookup failed for websocket, falling back to local ACL:", e)
 
-    record = res.data[0]
+    if not record:
+        local_patterns = LOCAL_ACL.get(api_key, [])
+        if not local_patterns:
+            await websocket.close(code=4403, reason="Invalid API key")
+            return False
+        record = {"user_id": "", "scopes": {"read": local_patterns, "write": local_patterns}}
+
     scopes = record.get("scopes", {})
     user_id = record.get("user_id", "")
 

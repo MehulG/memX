@@ -3,11 +3,14 @@ import asyncio
 import websockets
 import threading
 import json
+import os
 
 class memxContext:
-    def __init__(self, api_key, base_url="https://memx-production.up.railway.app"):
+    def __init__(self, api_key, base_url=None):
+        # Local-first by default; override via env or argument for hosted deployments.
+        default_base = os.getenv("MEMX_BASE_URL", "http://127.0.0.1:8000")
         self.api_key = api_key
-        self.base_url = base_url
+        self.base_url = base_url or default_base
 
     def set(self, key, value):
         res = httpx.post(
@@ -71,4 +74,3 @@ class memxContext:
         )
         res.raise_for_status()
         return res.json()
-
