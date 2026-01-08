@@ -57,18 +57,13 @@ Three autonomous agents solving a research task, fully decentralized:
    poetry run python examples/test.py
    ```
 
-### Hosted
+### Install the SDK
 
 ```bash
 pip install memx-sdk
 ```
 
-### 2. Generate an API Key
-
-Visit: [mem-x.vercel.com](https://mem-x.vercel.com)
-Generate scoped API keys with just a few clicks.
-
-### 3. Use in Python
+### Use in Python
 
 ```python
 from memx_sdk import memxContext
@@ -108,11 +103,6 @@ Swagger docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 ---
 
 ## 🔑 API Key Management
-
-### Hosted
-
-1. Log in at [mem-x.vercel.com](https://mem-x.vercel.com)
-2. Generate API keys with scoped access control
 
 ### Local Config
 
