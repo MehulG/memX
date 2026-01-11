@@ -21,6 +21,10 @@ def _check_scope(scopes: dict, action: str, key: str, user_id: str):
     namespaced_key = key if not user_id else f"{user_id[:8]}:{key}"
     return any(fnmatch.fnmatch(namespaced_key, pattern) for pattern in scopes.get(action, []))
 
+def _apply_namespace(key: str, record: dict) -> str:
+    user_id = record.get("user_id", "")
+    return key if not user_id else f"{user_id[:8]}:{key}"
+
 async def validate_api_key(request: Request, key: str, action: str = "write"):
     api_key = request.headers.get("x-api-key")
     if not api_key:
@@ -48,8 +52,9 @@ async def validate_api_key(request: Request, key: str, action: str = "write"):
         raise HTTPException(status_code=403, detail=f"{action.upper()} not permitted for key '{key}'")
 
     request.state.api_key = record
+    request.state.namespaced_key = _apply_namespace(key, record)
 
-async def validate_websocket(websocket: WebSocket, key: str) -> bool:
+async def validate_websocket(websocket: WebSocket, key: str):
     api_key = websocket.headers.get("x-api-key")
     if not api_key:
         await websocket.close(code=4401, reason="Missing API key")
@@ -78,4 +83,4 @@ async def validate_websocket(websocket: WebSocket, key: str) -> bool:
         await websocket.close(code=4403, reason="Unauthorized to subscribe to this key")
         return False
 
-    return True
+    return _apply_namespace(key, record)

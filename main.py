@@ -11,7 +11,8 @@ app = FastAPI()
 @app.get("/get")
 async def get(key: str, request: Request):
     await validate_api.validate_api_key(request, key, action="read")
-    return get_value(key)
+    namespaced_key = getattr(request.state, "namespaced_key", key)
+    return get_value(namespaced_key)
 
 @app.post("/set")
 async def set(request: Request):
@@ -20,30 +21,32 @@ async def set(request: Request):
     key = body["key"]
 
     await validate_api.validate_api_key(request, key, action="write")
+    namespaced_key = getattr(request.state, "namespaced_key", key)
 
     try:
-        validate_schema(key, value)
+        validate_schema(namespaced_key, value)
     except jsonschema.exceptions.ValidationError as e:
         raise HTTPException(400, detail=str(e))
 
-    updated = set_value(key, value)
+    updated = set_value(namespaced_key, value)
     if updated:
-        await publish(key, value)
+        await publish(namespaced_key, value)
 
     return {"ok": True, "updated": updated}
 
 @app.websocket("/subscribe/{key}")
 async def websocket_endpoint(websocket: WebSocket, key: str):
     await websocket.accept()
-    if not await validate_api.validate_websocket(websocket, key):
+    namespaced_key = await validate_api.validate_websocket(websocket, key)
+    if not namespaced_key:
         return
-    print(f"[WebSocket] Subscribed to {key}")
-    subscribe(key, websocket)
+    print(f"[WebSocket] Subscribed to {namespaced_key}")
+    subscribe(namespaced_key, websocket)
     try:
         while True:
             await asyncio.sleep(1)
     except:
-        print(f"[WebSocket] closed: {key}")
+        print(f"[WebSocket] closed: {namespaced_key}")
 
 @app.post("/schema")
 async def set_schema(request: Request):
@@ -52,9 +55,10 @@ async def set_schema(request: Request):
     schema = body["schema"]
 
     await validate_api.validate_api_key(request, key, action="write")
+    namespaced_key = getattr(request.state, "namespaced_key", key)
 
     try:
-        register_schema(key, schema)
+        register_schema(namespaced_key, schema)
     except jsonschema.exceptions.SchemaError as e:
         raise HTTPException(400, detail=f"Invalid schema: {e}")
     return {"ok": True}
@@ -62,7 +66,8 @@ async def set_schema(request: Request):
 @app.get("/schema")
 async def fetch_schema(key: str, request: Request):
     await validate_api.validate_api_key(request, key, action="read")
-    schema = get_schema(key)
+    namespaced_key = getattr(request.state, "namespaced_key", key)
+    schema = get_schema(namespaced_key)
     if not schema:
         raise HTTPException(404, detail="Schema not found")
     return {"key": key, "schema": schema}
@@ -70,7 +75,8 @@ async def fetch_schema(key: str, request: Request):
 @app.delete("/schema")
 async def remove_schema(key: str, request: Request):
     await validate_api.validate_api_key(request, key, action="write")
-    deleted = delete_schema(key)
+    namespaced_key = getattr(request.state, "namespaced_key", key)
+    deleted = delete_schema(namespaced_key)
     if not deleted:
         raise HTTPException(404, detail="Schema not found")
     return {"ok": True}

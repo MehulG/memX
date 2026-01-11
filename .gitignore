@@ -4,3 +4,10 @@
 /sdk/memx_sdk/__pycache__
 /frontend/.streamlit
 .env
+# Generated artifacts/caches
+/sdk/dist
+**/__pycache__/
+*.pyc
+/frontend/memx-frontend/.next
+/frontend/memx-frontend/node_modules
+/frontend/memx-frontend/.package-lock.json
