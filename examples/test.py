@@ -1,40 +1,65 @@
+"""
+Basic smoke test against the memX API.
+- Uses a single schema and reuses one key to avoid clutter in Redis.
+- Respects MEMX_BASE_URL and MEMX_API_KEY if provided; otherwise defaults to local dev.
+"""
+
+import os
+import sys
 from memx_sdk import memxContext
 
 
-# Use the local dev key defined in config/acl.json when running against the local server.
-ctx = memxContext(api_key="local_dev_key")
+BASE_URL = os.getenv("MEMX_BASE_URL")  # memxContext already defaults to http://127.0.0.1:8000
+API_KEY = os.getenv("MEMX_API_KEY", "local_dev_key")
+KEY_WITH_SCHEMA = os.getenv("MEMX_TEST_KEY_WITH_SCHEMA", "agent:goal:with-schema")
+KEY_NO_SCHEMA = os.getenv("MEMX_TEST_KEY_NO_SCHEMA", "agent:goal:no-schema")
 
-ctx.set_schema("agent:goal", {
+SCHEMA = {
     "type": "object",
     "properties": {
-      "x": { "type": "number" },
-      "y": { "type": "number" }
+        "x": {"type": "number"},
+        "y": {"type": "number"}
     },
     "required": ["x", "y"]
-  })
+}
 
-get1 = ctx.get("agent:goal")
-
-print(get1)
-
-ctx.set("agent:goal", {"x":1, "y":7})
-
-get2 = ctx.get("agent:goal")
-
-print(get2)
-
-for i in range(0,10):
-    ctx.set_schema("agent:goal:"+str(i), {
-    "type": "object",
-    "properties": {
-      "x": { "type": "number" },
-      "y": { "type": "number" }
-    },
-    "required": ["x", "y"]
-    })
-    ctx.set("agent:goal"+str(i), {"x":i, "y":i*2})
-    get1 = ctx.get("agent:goal"+str(i))
-
-    print(get1)
+WITH_SCHEMA_PAYLOAD = {"x": 1, "y": 7}
+WITHOUT_SCHEMA_PAYLOAD = {"note": "no schema applied here"}
+READ_AFTER_WRITES = int(os.getenv("MEMX_READ_TIMES", "1"))  # set >1 to intentionally repeat reads
 
 
+def main():
+    ctx = memxContext(api_key=API_KEY, base_url=BASE_URL)
+
+    def set_and_get(key: str, payload: dict, set_schema: bool = False):
+        try:
+            if set_schema:
+                print(f"[schema] setting schema for {key}")
+                ctx.set_schema(key, SCHEMA)
+            print(f"[set] writing {key}: {payload}")
+            ctx.set(key, payload)
+            got = ctx.get(key)
+            print(f"[get] from {key} received:", got)
+        except Exception as exc:
+            print(f"Set/get failed for {key}:", exc)
+            sys.exit(1)
+
+    # One key with schema (validated), one key without schema (freeform)
+    set_and_get(KEY_WITH_SCHEMA, WITH_SCHEMA_PAYLOAD, set_schema=True)
+    set_and_get(KEY_NO_SCHEMA, WITHOUT_SCHEMA_PAYLOAD, set_schema=False)
+
+    # Multiple reads of each key to verify persistence
+    for key in (KEY_WITH_SCHEMA, KEY_NO_SCHEMA):
+        for j in range(1, READ_AFTER_WRITES + 1):
+            try:
+                got = ctx.get(key)
+                print(f"[read] {key} repeat #{j} received:", got)
+            except Exception as exc:
+                print(f"Repeated read failed for {key} at iteration {j}:", exc)
+                sys.exit(1)
+
+    print("✅ smoke test succeeded")
+
+
+if __name__ == "__main__":
+    main()

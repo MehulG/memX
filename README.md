@@ -107,6 +107,7 @@ All communication flows through shared keys in memX — not through chat or a co
 - When `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` are set, the service reads from a Supabase `api_keys` table; records should include `key`, `active`, `scopes` (JSON with `read` and `write` patterns), and optional `user_id`.
 - Without Supabase, memX falls back to `config/acl.json`, mapping API keys to glob-style patterns (for example, `"agent_key": ["agent:*"]`).
 - Requests must send the API key in the `x-api-key` header for HTTP and WebSocket calls.
+- Stored keys are automatically namespaced with the first 8 characters of the authenticated user ID when one is present; clients continue to read/write using the raw key name and the service applies the namespace internally.
 
 ## Python SDK
 Install from PyPI:
@@ -176,6 +177,7 @@ docker-compose.yml  # Dev stack (API + Redis)
 - Use `poetry install` to create a virtualenv with dependencies, or `pip install -r requirements.txt`.
 - Run the backend locally with `poetry run uvicorn main:app --reload`.
 - The examples in `examples/test.py` and `sdk/memx_sdk/test_client.py` are the quickest way to exercise the API and SDK.
+- A quick HTTP smoke test lives at `scripts/smoke_test.py` (uses env vars `MEMX_BASE_URL` and `MEMX_SMOKE_API_KEY`; defaults to `http://127.0.0.1:8000` and `local_dev_key`).
 - Automated tests are not yet included; contributions that add coverage are welcome.
 
 ## Contributing
