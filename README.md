@@ -137,6 +137,10 @@ def on_update(data):
 ctx.subscribe("agent:goal", on_update)
 ```
 
+WebSocket event types:
+- Default `event=value` streams value updates.
+- Pass `?event=schema` to watch schema set/delete events (e.g., `ws://127.0.0.1:8000/subscribe/agent:goal?event=schema`).
+
 ## HTTP API Examples
 `x-api-key` header is required for all calls.
 
@@ -156,6 +160,10 @@ curl -X POST "http://127.0.0.1:8000/schema" \
   -H "x-api-key: local_dev_key" \
   -H "Content-Type: application/json" \
   -d '{"key":"agent:goal","schema":{"type":"object","properties":{"x":{"type":"number"},"y":{"type":"number"}},"required":["x","y"]}}'
+
+# Subscribe to updates (value events by default; pass ?event=schema for schema changes)
+# Example with websocat or similar:
+# websocat "ws://127.0.0.1:8000/subscribe/agent:goal?event=value" -H "x-api-key: local_dev_key"
 ```
 
 ## Project Layout
@@ -176,7 +184,7 @@ docker-compose.yml  # Dev stack (API + Redis)
 ## Development
 - Use `poetry install` to create a virtualenv with dependencies, or `pip install -r requirements.txt`.
 - Run the backend locally with `poetry run uvicorn main:app --reload`.
-- The examples in `examples/test.py` and `sdk/memx_sdk/test_client.py` are the quickest way to exercise the API and SDK.
+- The examples in `examples/test.py` (schema + no-schema flow with subscriptions) and `sdk/memx_sdk/test_client.py` are the quickest ways to exercise the API and SDK.
 - A quick HTTP smoke test lives at `scripts/smoke_test.py` (uses env vars `MEMX_BASE_URL` and `MEMX_SMOKE_API_KEY`; defaults to `http://127.0.0.1:8000` and `local_dev_key`).
 - Automated tests are not yet included; contributions that add coverage are welcome.
 

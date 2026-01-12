@@ -1,19 +1,20 @@
 from collections import defaultdict
 
-subscriptions = defaultdict(list)
+# subscriptions[event][key] -> list of websockets
+subscriptions = defaultdict(lambda: defaultdict(list))
 
-def subscribe(key, websocket):
-    subscriptions[key].append(websocket)
+def subscribe(key, websocket, event: str = "value"):
+    subscriptions[event][key].append(websocket)
 
-async def publish(key, value):
+async def publish(key, payload, event: str = "value"):
     disconnected = []
-    for ws in subscriptions.get(key, []):
+    for ws in subscriptions.get(event, {}).get(key, []):
         try:
-            await ws.send_json({"key": key, "value": value})
+            await ws.send_json(payload)
         except Exception as e:
             print(f"[WARN] Failed to send to WebSocket: {e}")
             disconnected.append(ws)
 
     # Remove dead sockets
     for ws in disconnected:
-        subscriptions[key].remove(ws)
+        subscriptions[event][key].remove(ws)
