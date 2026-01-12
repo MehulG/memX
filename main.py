@@ -30,7 +30,11 @@ async def set(request: Request):
 
     updated = set_value(namespaced_key, value)
     if updated:
-        await publish(namespaced_key, value)
+        await publish(
+            namespaced_key,
+            {"event": "value", "key": namespaced_key, "value": value},
+            event="value",
+        )
 
     return {"ok": True, "updated": updated}
 
@@ -40,13 +44,14 @@ async def websocket_endpoint(websocket: WebSocket, key: str):
     namespaced_key = await validate_api.validate_websocket(websocket, key)
     if not namespaced_key:
         return
-    print(f"[WebSocket] Subscribed to {namespaced_key}")
-    subscribe(namespaced_key, websocket)
+    event_type = websocket.query_params.get("event", "value")
+    print(f"[WebSocket] Subscribed to {namespaced_key} for event '{event_type}'")
+    subscribe(namespaced_key, websocket, event=event_type)
     try:
         while True:
             await asyncio.sleep(1)
     except:
-        print(f"[WebSocket] closed: {namespaced_key}")
+        print(f"[WebSocket] closed: {namespaced_key} ({event_type})")
 
 @app.post("/schema")
 async def set_schema(request: Request):
@@ -61,6 +66,11 @@ async def set_schema(request: Request):
         register_schema(namespaced_key, schema)
     except jsonschema.exceptions.SchemaError as e:
         raise HTTPException(400, detail=f"Invalid schema: {e}")
+    await publish(
+        namespaced_key,
+        {"event": "schema", "action": "set", "key": namespaced_key, "schema": schema},
+        event="schema",
+    )
     return {"ok": True}
 
 @app.get("/schema")
@@ -79,4 +89,9 @@ async def remove_schema(key: str, request: Request):
     deleted = delete_schema(namespaced_key)
     if not deleted:
         raise HTTPException(404, detail="Schema not found")
+    await publish(
+        namespaced_key,
+        {"event": "schema", "action": "delete", "key": namespaced_key},
+        event="schema",
+    )
     return {"ok": True}

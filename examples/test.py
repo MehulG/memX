@@ -44,6 +44,13 @@ def main():
             print(f"Set/get failed for {key}:", exc)
             sys.exit(1)
 
+    # Subscribe to value events for both keys
+    def sub_callback(msg):
+        print("[sub:value] received:", msg)
+
+    ctx.subscribe(KEY_WITH_SCHEMA, sub_callback)
+    ctx.subscribe(KEY_NO_SCHEMA, sub_callback)
+
     # One key with schema (validated), one key without schema (freeform)
     set_and_get(KEY_WITH_SCHEMA, WITH_SCHEMA_PAYLOAD, set_schema=True)
     set_and_get(KEY_NO_SCHEMA, WITHOUT_SCHEMA_PAYLOAD, set_schema=False)
@@ -57,6 +64,10 @@ def main():
             except Exception as exc:
                 print(f"Repeated read failed for {key} at iteration {j}:", exc)
                 sys.exit(1)
+
+    # Keep the process alive briefly to allow subscription callbacks to fire
+    import time
+    time.sleep(2)
 
     print("✅ smoke test succeeded")
 
